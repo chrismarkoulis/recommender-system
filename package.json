@@ -1,0 +1,28 @@
+{
+  "name": "recommender-system",
+  "version": "1.0.0",
+  "description": "Recommender system for movies",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index"
+  },
+  "bin": {
+    "recommender": "./index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/chrismarkoulis/recommender-system.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/chrismarkoulis/recommender-system/issues"
+  },
+  "homepage": "https://github.com/chrismarkoulis/recommender-system#readme",
+  "dependencies": {
+    "commander": "^11.1.0",
+    "csv-parser": "^3.0.0",
+    "unzipper": "^0.10.14"
+  }
+}
