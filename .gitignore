@@ -131,4 +131,5 @@ dist
 
 # Movielens files
 ml-latest/
+ml-100k/
 ml-latest.zip
