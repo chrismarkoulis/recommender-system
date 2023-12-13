@@ -44,7 +44,7 @@ function calculateSimilarity(metric, vector1, vector2) {
 }
 
 function getUserBasedRecommendations(userId, numRecommendations, similarityMetric, ratingsByUser) {
-  const userRatings = ratingsByUser[userId]; // Fetch ratings for the given user
+  const userRatings = ratingsByUser[userId];
 
   // Calculate similarity between the given user and all other users
   const userSimilarities = {};
@@ -175,7 +175,6 @@ function getTagBasedRecommendations(movieId, numRecommendations, similarityMetri
     }
   }
 
-  // Sort movies by similarity in descending order
   const sortedSimilarities = Object.entries(movieSimilarities)
     .sort(([, similarityA], [, similarityB]) => similarityB - similarityA);
 
@@ -193,8 +192,8 @@ function calculateTFIDFVectors(inputId, numRecommendations, similarityMetric, ra
   // Iterate through ratings to build TF vectors and collect unique keywords
   for (const userId in ratingsByUser) {
     ratingsByUser[userId].forEach(rating => {
-      const movieId = rating.movieId.toString(); // Convert to string ID
-      const { title } = movies[movieId] || {}; // Fetch movie details; handle undefined
+      const movieId = rating.movieId.toString();
+      const { title } = movies[movieId] || {};
 
       // Consider only the movie of interest (specified by inputId)
       if (inputId && movieId !== inputId.toString() || !title) return;
@@ -290,8 +289,7 @@ function ParseMovieLensData(directory, numRecommendations, similarity, algorithm
             userId: userId,
             age: parseInt(columns[1]),
             gender: columns[2],
-            occupation: columns[3],
-            // Include other relevant user information here based on your dataset's structure
+            occupation: columns[3]
           };
         });
 
@@ -306,7 +304,7 @@ function ParseMovieLensData(directory, numRecommendations, similarity, algorithm
             const [genreName, genreId] = row.split('|');
             genres[parseInt(genreId)] = {
               name: genreName,
-              movies: [] // Initialize movies array for each genre
+              movies: []
             };
           });
 
@@ -381,14 +379,54 @@ function ParseMovieLensData(directory, numRecommendations, similarity, algorithm
               } else {
                 reject('Invalid similarity metric specified for title algorithm.');
               }
-            } else {
-              reject('Invalid algorithm specified.');
+            } else if (algorithm === 'hybrid') {
+              // custom weights based on preference or performance
+              /*
+              This approach involves assigning weights to each algorithm's output and then combining their scores for each movie. 
+              The final step sorts these recommendations based on their combined scores and selects the top movies to recommend. 
+              Adjusting the weights can help emphasize or de-emphasize the influence of each individual algorithm on 
+              the final recommendations.
+              */
+              const weights = {
+                user: 0.3,
+                item: 0.2,
+                tag: 0.3,
+                title: 0.2
+              };
+
+              const recommendations = {};
+
+              // Get recommendations from each individual algorithm
+              const userRecommendations = getUserBasedRecommendations(inputId, numRecommendations, similarity, ratingsByUser);
+              const itemRecommendations = getItemBasedRecommendations(inputId, numRecommendations, similarity, ratingsByUser);
+              const tagRecommendations = getTagBasedRecommendations(inputId, numRecommendations, similarity, ratingsByUser);
+              const titleRecommendations = calculateTFIDFVectors(inputId, numRecommendations, similarity, ratingsByUser, movies);
+
+              // Merge recommendations using weighted scores
+              for (const movieId in userRecommendations) {
+                recommendations[movieId] =
+                  (weights.user * (userRecommendations[movieId] || 0)) +
+                  (weights.item * (itemRecommendations[movieId] || 0)) +
+                  (weights.tag * (tagRecommendations[movieId] || 0)) +
+                  (weights.title * (titleRecommendations[movieId] || 0));
+              }
+
+              // Sort recommendations by their combined scores
+              const sortedRecommendations = Object.keys(recommendations).sort(
+                (a, b) => recommendations[b] - recommendations[a]
+              );
+
+              // Get the top 'numRecommendations' movies
+              const topRecommendations = sortedRecommendations.slice(0, numRecommendations);
+
+              resolve(`Hybrid recommendations using a combination of algorithms: \n${topRecommendations}`);
             }
 
 
+            else {
+              reject('Invalid algorithm specified.');
+            }
 
-            //resolve({ ratingsByUser, ratingsByMovie, movies: Object.values(movies), users, genres });
-            //resolve(data);
           });
         });
       });

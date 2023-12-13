@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Movie Recommender System</title>
+    <style>
+        h1 {
+            text-align:center;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+        }
+
+        li {
+            color: #3498db;
+            border-radius: 5px;
+        }
+
+        #recommendationForm {
+            padding: 25px;
+            margin: 25px;
+            border-radius: 5px;
+            background-color: #3498db;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Movie Recommender</h1>
+
+    <form id="recommendationForm">
+        <label for="movieTitle">Movie ID:</label>
+        <input type="string" id="movieTitle" name="movieTitle">
+
+        <label for="similarity">Similarity Metric:</label>
+        <select id="similarity" name="similarity">
+            <option value="jaccard">Jaccard</option>
+            <option value="dice">Dice</option>
+            <option value="cosine">Cosine</option>
+            <option value="pearson">Pearson</option>
+        </select>
+
+        <label for="algorithm">Algorithm:</label>
+        <select id="algorithm" name="algorithm">
+            <option value="user">User-User</option>
+            <option value="item">Item-Item</option>
+            <option value="tag">Tag-Based</option>
+            <option value="title">Content-Based</option>
+            <option value="hybrid">Hybrid</option>
+        </select>
+
+        <button type="submit">Get Recommendations</button>
+    </form>
+
+    <ul id="recommendationsList"></ul>
+
+    <script>
+        document.getElementById('recommendationForm').addEventListener('submit', async function (event) {
+            event.preventDefault();
+
+            const formData = new FormData(this);
+            const inputId = formData.get('movieTitle');
+            const similarity = formData.get('similarity');
+            const algorithm = formData.get('algorithm');
+
+            try {
+                const response = await fetch('/recommendations', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        inputId,
+                        similarity,
+                        algorithm
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to fetch recommendations');
+                }
+
+                const recommendations = await response.json();
+
+                displayRecommendations(recommendations);
+            } catch (error) {
+                console.error('Error:', error.message);
+            }
+        });
+
+        // Function to display recommendations
+        function displayRecommendations(recommendations) {
+            const recommendationsList = document.getElementById('recommendationsList');
+            recommendationsList.innerHTML = '';
+
+            console.log("recommendations at display: ", recommendations);
+
+            recommendations.forEach(movie => {
+                const listItem = document.createElement('li');
+                listItem.textContent = movie;
+                recommendationsList.appendChild(listItem);
+            });
+        }
+    </script>
+</body>
+
+</html>

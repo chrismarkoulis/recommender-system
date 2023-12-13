@@ -3,7 +3,7 @@ const fs = require('fs');
 const { program } = require('commander');
 const { ParseMovieLensData } = require('./utils/helpers');
 
-// Define command-line options using Commander
+// Command-line options
 program
   .option('-d, --directory <directory>', 'Directory where data is located')
   .option('-n, --num-recommendations <num>', 'Number of recommendations to return')
@@ -14,7 +14,7 @@ program
 
 // Extract values from command-line arguments
 const { directory, numRecommendations, similarity, algorithm, input } = program.opts();
-console.log({ directory, numRecommendations, similarity, algorithm, input });
+console.log("PARAMETERS: \n", { directory, numRecommendations, similarity, algorithm, input });
 
 // Check if required options are provided
 if (!directory || !numRecommendations || !similarity || !algorithm || !input) {
@@ -24,13 +24,7 @@ if (!directory || !numRecommendations || !similarity || !algorithm || !input) {
 
 ParseMovieLensData(directory, numRecommendations, similarity, algorithm, input)
   .then((data) => {
-    // Display the parsed data in the terminal/console
-    // console.log('Ratings by User:', ratingsByUser);
-    // console.log('Ratings by Movie:', ratingsByMovie);
-    // console.log('Movies:', movies);
-    // console.log('Users:', users);
-    // console.log('Genres:', genres);
-    console.log('Recommendations or Data:', data);
+    console.log('~~> RECOMMENDATIONS \n', data);
   })
   .catch(error => {
     console.error('Error:', error);
